@@ -26,7 +26,7 @@ const Navbar: React.FC = () => {
   return (
     <nav className='w-full flex md:justify-center justify-between
     items-center p-4'>
-      <div className='md:flex-[0.5] flex-initial justify-center items-center'>
+      <div className='md:flex flex-1 flex-initial justify-center items-center'>
         <img src={logo} className='w-32 cursor-pointer' alt='main_logo' />
       </div>
       <ul className='text-white md:flex hidden list-none
