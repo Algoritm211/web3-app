@@ -91,7 +91,7 @@ const Welcome: React.FC = () => {
 
           <div className='h-1 w-full bg-gray-400 my-2' />
 
-          {true ? (
+          {false ? (
             <Loader />
           ) : (
             <button
