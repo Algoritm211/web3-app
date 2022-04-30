@@ -1,16 +1,37 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import { BsInfoCircle, SiEthereum} from "react-icons/all";
 import {Input} from "../Input/Input";
 import Loader from "../Loader/Loader";
+import {TransactionContext} from "../../context/TransactionContext";
+import {Field, Form } from 'react-final-form';
+import {composeValidators, minValueValidator, requiredValidator} from '../Input/validators';
 
 
 const commonStyles = 'min-h-[70px] sm:px-0 px-2 sm:min-w-[120px] flex justify-center items-center border-[0.5px] border-gray-400 text-sm font-light text-white';
+export interface FormValues {
+  addressTo: string;
+  amount: string;
+  keyword: string;
+  message: string;
+}
 
 const Welcome: React.FC = () => {
-  const connectWallet = () => {
-    // TODO make connecting wallet
+  const {
+    currentAccount,
+    isLoading,
+    connectWallet,
+    sendTransaction,
+  } = useContext(TransactionContext);
+
+  const onConnectWallet = () => {
+    connectWallet();
     console.log('Connecting wallet')
   };
+
+  const onSubmit = (values: FormValues) => {
+    sendTransaction(values)
+  }
+
   return (
     <div className='flex w-full flex-col mf:flex-row justify-center items-center py-10'>
       <div className='flex mf:flex-row flex-col items-start justify-between
@@ -22,14 +43,18 @@ const Welcome: React.FC = () => {
           <p className='text-left text-white font-light md:w-9/12 w-11/12 text-base '>
             Explore the world buy and sell cryptocurrencies around the world
           </p>
-          <button
-            type='button'
-            onClick={connectWallet}
-            className='flex flex-row justify-center items-center my-5 p-3
-            bg-blue-500 rounded-full cursor-pointer hover:bg-blue-600'
+          {!currentAccount ? (<button
+            type="button"
+            onClick={onConnectWallet}
+            className="flex flex-row justify-center items-center my-5 p-3
+            bg-blue-500 rounded-full cursor-pointer hover:bg-blue-600"
           >
-            <p className='text-white text-base font-semibold'>Connect wallet</p>
-          </button>
+            <p className="text-white text-base font-semibold">Connect wallet</p>
+          </button>) : (
+            <div className="text-white">
+              Your account is connected
+            </div>
+          )}
 
           <div className='grid sm:grid-cols-3 grid-cols-2 w-full mt-10'>
             <div className={`rounded-tl-2xl ${commonStyles}`}>
@@ -82,27 +107,60 @@ const Welcome: React.FC = () => {
         </div>
 
         {/* Form */}
-        <div className='p-5 sm:w-96 w-full flex flex-col
+        <Form<FormValues>
+          onSubmit={onSubmit}
+          render={({handleSubmit}) => {
+            return (
+              <form
+                onSubmit={handleSubmit}
+                className='p-5 sm:w-96 w-full flex flex-col
             justify-start items-center blue-glassmorphism'>
-          <Input placeholder='Address to' name='addressTo' type='text' />
-          <Input placeholder='Amount (ETH)' name='amount' type='number' />
-          <Input placeholder='Keyword (Gif)' name='keyword' type='text' />
-          <Input placeholder='Enter message' name='message' type='text' />
+                <Field
+                  name="addressTo"
+                  type="text"
+                  placeholder="Address to"
+                  validate={requiredValidator}
+                  component={Input}
+                />
+                <Field
+                  name="amount"
+                  type="number"
+                  placeholder="Amount (ETH)"
+                  validate={composeValidators(requiredValidator, minValueValidator(0))}
+                  component={Input}
+                />
+                <Field
+                  name="keyword"
+                  type="text"
+                  placeholder="Keyword (Gif)"
+                  validate={requiredValidator}
+                  component={Input}
+                />
+                <Field
+                  name="message"
+                  type="text"
+                  placeholder="Enter message"
+                  validate={requiredValidator}
+                  component={Input}
+                />
 
-          <div className='h-1 w-full bg-gray-400 my-2' />
+                <div className='h-1 w-full bg-gray-400 my-2' />
 
-          {false ? (
-            <Loader />
-          ) : (
-            <button
-              type='submit'
-              className='text-white w-full mt-2 border p-2
+                {isLoading ? (
+                  <Loader />
+                ) : (
+                  <button
+                    type='submit'
+                    className='text-white w-full mt-2 border p-2
               border-gray-400 rounded-full cursor-pointer hover:bg-gray-400 hover:text-black'
-            >
-            Send now
-            </button>
-          )}
-        </div>
+                  >
+                    Send now
+                  </button>
+                )}
+              </form>
+            )
+          }}
+        />
       </div>
     </div>
   );
