@@ -4,12 +4,14 @@ import {TransactionContext} from "../../context/TransactionContext";
 import {TransactionCard} from "./TransactionCard";
 
 const Transactions: React.FC = () => {
-  const {currentAccount} = useContext(TransactionContext);
-  const transactionsBlock = dummyData.reverse().map((transaction) => {
+  const {currentAccount, transactions} = useContext(TransactionContext);
+
+  const transactionsBlock = transactions.reverse().map((transaction, index) => {
     return (
-      <TransactionCard key={transaction.id} {...transaction} />
+      <TransactionCard key={index} {...transaction} />
     )
   })
+
   return (
     <div className="flex w-full justify-center items-center 2xl:px-20
     gradient-bg-transactions">

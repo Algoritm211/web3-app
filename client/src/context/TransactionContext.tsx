@@ -3,7 +3,18 @@ import {ethers} from "ethers";
 import {contractABI, contractAddress} from "../utils/constants";
 import {FormValues} from "../components/Welcome/Welcome";
 
+interface Transaction {
+  addressTo: string;
+  addressFrom: string;
+  keyword: string;
+  message: string;
+  timestamp: string;
+  // Getting amount in ETH (because it hex of GWEI)
+  amount: number;
+}
+
 interface TransactionContextValues {
+  transactions: Transaction[]
   isLoading: boolean,
   connectWallet: () => void,
   currentAccount: string | undefined,
@@ -29,6 +40,37 @@ export const TransactionProvider: React.FC<Props> = ({children}) => {
   const [currentAccount, setCurrentAccount] = useState();
   const [isLoading, setIsLoading] = useState(false);
   const [transactionCount, setTransactionCount] = useState(localStorage.getItem('transactionCount') || 0);
+  const [transactions, setTransactions] = useState([]);
+
+  const getAllTransactions = async () => {
+    try {
+      if (!ethereum) {
+        return alert('Please install metamask to use application');
+      }
+
+      const transactionContract = getEthereumContract()
+      const rawTransactions = await transactionContract.getAllTransactions();
+
+      const structuredTransactions = rawTransactions.map((transaction: Record<string, any>) => {
+        return {
+          addressTo: transaction.receiver,
+          addressFrom: transaction.sender,
+          keyword: transaction.keyword,
+          message: transaction.message,
+          timestamp: new Date(transaction.timestamp.toNumber() * 1000).toLocaleString(),
+          // Getting amount in ETH (because it hex of GWEI)
+          amount: parseInt(transaction.amount._hex) / (10 ** 18),
+        }
+      })
+
+      console.log(structuredTransactions)
+
+      setTransactions(structuredTransactions)
+    } catch (error) {
+      console.log(error)
+      throw new Error('Some error was occurred while getting all transactions')
+    }
+  };
 
   const checkIfWalletIsConnected = async () => {
     try {
@@ -41,7 +83,7 @@ export const TransactionProvider: React.FC<Props> = ({children}) => {
       if (accounts.length !== 0) {
         setCurrentAccount(accounts[0]);
 
-        // getAllTransactions();
+        getAllTransactions();
       } else {
         console.log('No connected accounts found')
       }
@@ -53,12 +95,22 @@ export const TransactionProvider: React.FC<Props> = ({children}) => {
     }
   }
 
+  const checkIfTransactionsExist = async () => {
+    try {
+      const transactionContract = getEthereumContract();
+      const transactionCount = await transactionContract.getTransactionsCount()
+      localStorage.setItem('transactionCount', transactionCount);
+    } catch (error) {
+      console.log(error)
+      throw new Error('Some error was occurred when checking transactions')
+    }
+  }
+
   const connectWallet = async () => {
    try {
      if (!ethereum) {
        return alert('Please install Metamask to use application');
      }
-
      const accounts = await ethereum.request({method: 'eth_requestAccounts'});
      console.log('eth_requestAccounts', accounts);
      setCurrentAccount(accounts[0]);
@@ -109,10 +161,12 @@ export const TransactionProvider: React.FC<Props> = ({children}) => {
 
   useEffect(() => {
     void checkIfWalletIsConnected();
+    void checkIfTransactionsExist();
   }, [])
 
   return (
     <TransactionContext.Provider value={{
+      transactions,
       currentAccount,
       isLoading,
       connectWallet,
