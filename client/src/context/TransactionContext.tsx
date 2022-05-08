@@ -114,6 +114,7 @@ export const TransactionProvider: React.FC<Props> = ({children}) => {
      const accounts = await ethereum.request({method: 'eth_requestAccounts'});
      console.log('eth_requestAccounts', accounts);
      setCurrentAccount(accounts[0]);
+     getAllTransactions();
    } catch (error) {
      console.log(error)
      throw new Error('Some error was occurred in wallet connect process')
@@ -151,6 +152,7 @@ export const TransactionProvider: React.FC<Props> = ({children}) => {
       const transactionCount = await transactionContract.getTransactionsCount();
       setTransactionCount(transactionCount.toNumber());
       localStorage.setItem('transactionCount', transactionCount);
+      getAllTransactions();
     } catch (error) {
       console.log(error)
       throw new Error('Some error was occurred when sending transactions')
