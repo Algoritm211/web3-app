@@ -4,6 +4,8 @@
 The main purpose of this application - build smart-contract, provide supporting transactions through MetaMask 
 and save some data in blockchain.
 
+⭐ Video of working application - [LINK](https://youtu.be/CjTYbHFdIFc)
+
 ### Run on your computer
 
 1. Install dependencies in `client` and `smart_contract` folders with `npm install`
